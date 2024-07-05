@@ -1,19 +1,26 @@
 use std::fs;
-use std::io::{self, Read};
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
+use walkdir::WalkDir;
 
 #[derive(Parser)]
+#[clap(version, about, long_about = None)]
 struct Cli {
     /// Paths to directories or files to read
     paths: Vec<PathBuf>,
+
+    /// Maximum recursion depth for directories
+    #[clap(short, long, default_value = "10")]
+    max_depth: usize,
 }
 
 /// Print the file path and the contents of a file
-fn print_file(file_path: &Path, base_path: &Path) -> io::Result<()> {
-    let relative_path = file_path.strip_prefix(base_path).unwrap_or(file_path);
+fn print_file(file_path: &Path, base_path: &Path) -> Result<()> {
+    let relative_path = file_path.strip_prefix(base_path)
+        .with_context(|| format!("Failed to strip prefix from {}", file_path.display()))?;
     let display_path = if base_path == Path::new("") {
         file_path
     } else {
@@ -22,52 +29,70 @@ fn print_file(file_path: &Path, base_path: &Path) -> io::Result<()> {
 
     println!("**{}:**", display_path.display());
 
-    let mut file = fs::File::open(file_path)?;
-    let mut contents = String::new();
+    match fs::File::open(file_path) {
+        Ok(file) => {
+            let reader = BufReader::new(file);
+            for line in reader.lines() {
+                match line {
+                    Ok(line) => println!("{}", line),
+                    Err(e) => {
+                        eprintln!("Warning: Failed to read line in {}: {}", file_path.display(), e);
+                        continue;
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("Warning: Failed to open file {}: {}", file_path.display(), e);
+            return Ok(());
+        }
+    }
 
-    file.read_to_string(&mut contents)?;
-
-    println!("{}", contents);
+    println!();
 
     Ok(())
 }
 
 /// Print the files in a directory and its subdirectories
-fn print_files_in_directory(directory: &Path) -> io::Result<()> {
-    let mut stack = vec![PathBuf::from(directory)];
-
-    while let Some(current_path) = stack.pop() {
-        if current_path.is_dir() {
-            for entry in fs::read_dir(current_path)? {
-                let entry = entry?;
-                stack.push(entry.path());
+fn print_files_in_directory(directory: &Path, max_depth: usize) -> Result<()> {
+    for entry in WalkDir::new(directory).max_depth(max_depth) {
+        match entry {
+            Ok(entry) => {
+                if entry.file_type().is_file() {
+                    if let Err(e) = print_file(entry.path(), directory) {
+                        eprintln!("Warning: Failed to process file {}: {}", entry.path().display(), e);
+                    }
+                    println!("{}", "-".repeat(80));
+                }
             }
-        } else if current_path.is_file() {
-            print_file(&current_path, directory)?;
+            Err(e) => {
+                eprintln!("Warning: Failed to read entry in {}: {}", directory.display(), e);
+                continue;
+            }
         }
     }
-
     Ok(())
 }
 
 fn main() -> Result<()> {
-    let args = Cli::parse();
-    let separator = "-".repeat(80);
+    let cli = Cli::parse();
 
-    if args.paths.is_empty() {
-        anyhow::bail!("Error: No paths provided");
+    if cli.paths.is_empty() {
+        anyhow::bail!("No paths provided. Use --help for usage information.");
     }
 
-    for path in &args.paths {
+    for path in &cli.paths {
         if path.is_dir() {
-            print_files_in_directory(path)?;
+            if let Err(e) = print_files_in_directory(path, cli.max_depth) {
+                eprintln!("Warning: Failed to process directory {}: {}", path.display(), e);
+            }
         } else if path.is_file() {
-            print_file(path, Path::new(""))?;
+            if let Err(e) = print_file(path, Path::new("")) {
+                eprintln!("Warning: Failed to process file {}: {}", path.display(), e);
+            }
         } else {
-            anyhow::bail!("Error: Path is not a file or directory");
+            eprintln!("Warning: Path '{}' is neither a file nor a directory", path.display());
         }
-
-        println!("{}", separator);
     }
 
     Ok(())
