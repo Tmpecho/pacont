@@ -27,7 +27,7 @@
 
 1.	Clone the repository:
 ```bash
-git clone https://github.com/yourusername/pacont.git
+git clone https://github.com/Tmpecho/pacont.git
 cd pacont
 ```
 
@@ -45,7 +45,7 @@ sudo cp target/release/pacont /usr/local/bin/pacont
 
 ### Homebrew Installation
 ```bash
-brew tap yourusername/pacont
+brew tap Tmpecho/pacont
 brew install pacont
 ```
 
