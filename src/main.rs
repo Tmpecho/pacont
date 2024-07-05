@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
 
 #[derive(Parser)]
 #[clap(version, about, long_about = None)]
@@ -49,23 +49,28 @@ fn print_file(file_path: &Path, base_path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Process a directory entry if it is a file
+fn process_if_file(directory: &Path, include_errors: bool, entry: DirEntry) {
+    if entry.file_type().is_file() {
+        match print_file(entry.path(), directory) {
+            Ok(_) => separator(),
+            Err(e) => {
+                if include_errors {
+                    println!("**{}:**", entry.path().display());
+                    println!("ERROR: Failed to process file: {}", e);
+                    separator();
+                }
+            }
+        }
+    }
+}
+
 /// Print the files in a directory and its subdirectories
 fn print_files_in_directory(directory: &Path, max_depth: usize, include_errors: bool) -> Result<()> {
     for entry in WalkDir::new(directory).max_depth(max_depth) {
         match entry {
             Ok(entry) => {
-                if entry.file_type().is_file() {
-                    match print_file(entry.path(), directory) {
-                        Ok(_) => separator(),
-                        Err(e) => {
-                            if include_errors {
-                                println!("**{}:**", entry.path().display());
-                                println!("ERROR: Failed to process file: {}", e);
-                                separator();
-                            }
-                        }
-                    }
-                }
+                process_if_file(directory, include_errors, entry);
             }
             Err(e) => {
                 if include_errors {
@@ -78,7 +83,8 @@ fn print_files_in_directory(directory: &Path, max_depth: usize, include_errors: 
     Ok(())
 }
 
-fn process_path(cli: &Cli, path: &PathBuf) {
+/// Process a path, printing the contents of files and directories
+fn process_path(cli: &Cli, path: &Path) {
     if path.is_dir() {
         if let Err(e) = print_files_in_directory(path, cli.max_depth, cli.include_errors) {
             if cli.include_errors {
