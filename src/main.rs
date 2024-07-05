@@ -2,7 +2,7 @@ use std::fs;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::Parser;
 
 #[derive(Parser)]
@@ -23,7 +23,6 @@ fn print_file(file_path: &Path, base_path: &Path) -> io::Result<()> {
     file.read_to_string(&mut contents)?;
 
     println!("{}", contents);
-    println!("\n");
 
     Ok(())
 }
@@ -54,17 +53,16 @@ fn main() -> Result<()> {
         anyhow::bail!("Error: No paths provided");
     }
 
-    for (i, path) in args.paths.iter().enumerate() {
-        if i > 0 {
-            println!("{}", separator);
-        }
+    for path in &args.paths {
         if path.is_dir() {
-            print_files_in_directory(path).with_context(|| format!("Failed to read directory {:?}", path))?;
+            print_files_in_directory(path)?;
         } else if path.is_file() {
-            print_file(path, Path::new("")).with_context(|| format!("Failed to read file {:?}", path))?;
+            print_file(path, path)?;
         } else {
-            anyhow::bail!("Error: {:?} is not a valid file or directory", path);
+            anyhow::bail!("Error: Path is not a file or directory");
         }
+
+        println!("{}", separator);
     }
 
     Ok(())
