@@ -1,17 +1,23 @@
 # Pacont
+>  A tool to easily gather code context to give to an AI like ChatGPT or Claude.
 
+____
+
+![Release](https://img.shields.io/github/v/release/Tmpecho/pacont)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Rust](https://img.shields.io/badge/Rust-1.60+-blue.svg)
+![Platform](https://img.shields.io/badge/platform-macOS%20|%20Linux-lightgrey)
 
 ## Overview
 
-**Pacont** (short for Path and Content) is a simple and efficient CLI tool designed to recursively print file paths and their contents within a specified directory. This tool is particularly useful for gathering code context to provide to AI models like ChatGPT or Claude, making it easier to analyze and understand large codebases.
+**Pacont** (short for Path and Content) is a simple and efficient CLI tool designed to recursively print file paths and their contents within specified directories or files. This tool is particularly useful for gathering code context to provide to AI models like ChatGPT or Claude, making it easier to analyze and understand large codebases.
 
 ## Features
 
 - Recursively traverse directories and subdirectories.
 - Print file paths relative to the input directory.
 - Output the contents of each file.
+- Accept multiple directories and files as input, concatenating their contents with a separator.
 
 ## Installation
 
@@ -51,7 +57,7 @@ brew install pacont
 
 ## Usage
 ```bash
-pacont <directory>
+pacont <path1> <path2> <path3> ...
 ```
 
 ### Example
@@ -62,15 +68,27 @@ src/
 ├── div
 │   └── test.kt
 └── main.kt
+README.md
+misc/
+├── notes.txt
 ```
 
-Running `pacont src` will output:
+Running `pacont src README.md misc/` will output:
 ```
 **div/test.kt**
-// Code here
+//comment
 
 **main.kt**
-// Code here
+println("hello")
+
+--------------------------------------------------------------------------------
+**README.md**
+# Pacont
+A very simple CLI tool to recursively print file paths and contents in a directory.
+
+--------------------------------------------------------------------------------
+**notes.txt**
+Some notes here...
 ```
 
 ## Contributing
