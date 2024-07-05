@@ -18,6 +18,8 @@ ____
 - Print file paths relative to the input directory.
 - Output the contents of each file.
 - Accept multiple directories and files as input, concatenating their contents with a separator.
+- Control maximum recursion depth.
+- Include error messages in the output for files that cannot be read.
 
 ## Installation
 
@@ -25,9 +27,9 @@ ____
 
 - Rust and Cargo installed. If you haven't installed Rust yet, you can do so by running:
 
-  ```bash
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    ```
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
 
 ### Build from Source
 
@@ -37,7 +39,7 @@ git clone https://github.com/Tmpecho/pacont.git
 cd pacont
 ```
 
-2.	Build the project:
+2. Build the project:
 ```bash
 cargo build --release
 ```
@@ -57,8 +59,15 @@ brew install pacont
 
 ## Usage
 ```bash
-pacont <path1> <path2> <path3> ...
+pacont [OPTIONS] <PATH>...
 ```
+
+### Options
+
+- `-m, --max-depth <MAX_DEPTH>`: Maximum recursion depth for directories (0 means no recursion) [default: usize::MAX]
+- `-i, --include-errors`: Include error messages in the output
+- `-h, --help`: Print help information 
+- `-V, --version`: Print version information
 
 ### Example
 
