@@ -11,6 +11,7 @@ struct Cli {
     paths: Vec<PathBuf>,
 }
 
+/// Print the file path and the contents of a file
 fn print_file(file_path: &Path, base_path: &Path) -> io::Result<()> {
     let relative_path = file_path.strip_prefix(base_path).unwrap_or(file_path);
 
@@ -27,6 +28,7 @@ fn print_file(file_path: &Path, base_path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+/// Print the files in a directory and its subdirectories
 fn print_files_in_directory(directory: &Path) -> io::Result<()> {
     let mut stack = vec![PathBuf::from(directory)];
 
