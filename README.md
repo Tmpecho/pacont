@@ -21,3 +21,58 @@
 
   ```bash
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+### Build from Source
+
+1.	Clone the repository:
+```bash
+git clone https://github.com/yourusername/pacont.git
+cd pacont
+```
+
+2.	Build the project:
+```bash
+cargo build --release
+```
+
+3.	Move the executable to a directory in your PATH:
+
+#### MacOS/Linux:
+```bash
+sudo cp target/release/pacont /usr/local/bin/pacont
+```
+
+### Homebrew Installation
+```bash
+brew tap yourusername/pacont
+brew install pacont
+```
+
+## Usage
+```bash
+pacont <directory>
+```
+
+### Example
+
+Given a directory structure:
+```
+src/
+├── div
+│   └── test.kt
+└── main.kt
+```
+
+Running `pacont src` will output:
+```
+**div/test.kt**
+// Code here
+
+**main.kt**
+// Code here
+```
+
+## Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request if you have any improvements or new features to add.
