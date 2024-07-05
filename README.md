@@ -19,6 +19,7 @@ ____
 - Output the contents of each file.
 - Accept multiple directories and files as input, concatenating their contents with a separator.
 - Control maximum recursion depth.
+- Include error messages in the output for files that cannot be read.
 
 ## Installation
 
@@ -63,9 +64,10 @@ pacont [OPTIONS] <PATH>...
 
 ### Options
 
-- `-m, --max-depth <MAX_DEPTH>: Maximum recursion depth for directories (0 means no recursion) [default: usize::MAX]
-- -h, --help: Print help information 
-- -V, --version: Print version information
+- `-m, --max-depth <MAX_DEPTH>`: Maximum recursion depth for directories (0 means no recursion) [default: usize::MAX]
+- `-i, --include-errors`: Include error messages in the output
+- `-h, --help`: Print help information 
+- `-V, --version`: Print version information
 
 ### Example
 

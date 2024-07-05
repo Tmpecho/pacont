@@ -1,5 +1,5 @@
 use std::fs;
-use std::io::{BufRead, BufReader};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -15,6 +15,14 @@ struct Cli {
     /// Maximum recursion depth for directories
     #[clap(short, long, default_value = "10")]
     max_depth: usize,
+
+    /// Include error messages in the output
+    #[clap(short, long)]
+    include_errors: bool,
+}
+
+fn separator() {
+    println!("{}", "-".repeat(80));
 }
 
 /// Print the file path and the contents of a file
@@ -27,46 +35,42 @@ fn print_file(file_path: &Path, base_path: &Path) -> Result<()> {
         &base_path.join(relative_path)
     };
 
+    let mut file = fs::File::open(file_path)
+        .with_context(|| format!("Failed to open file {}", file_path.display()))?;
+
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .with_context(|| format!("Failed to read file contents of {}", file_path.display()))?;
+
     println!("**{}:**", display_path.display());
-
-    match fs::File::open(file_path) {
-        Ok(file) => {
-            let reader = BufReader::new(file);
-            for line in reader.lines() {
-                match line {
-                    Ok(line) => println!("{}", line),
-                    Err(e) => {
-                        eprintln!("Warning: Failed to read line in {}: {}", file_path.display(), e);
-                        continue;
-                    }
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Warning: Failed to open file {}: {}", file_path.display(), e);
-            return Ok(());
-        }
-    }
-
+    println!("{}", contents);
     println!();
 
     Ok(())
 }
 
 /// Print the files in a directory and its subdirectories
-fn print_files_in_directory(directory: &Path, max_depth: usize) -> Result<()> {
+fn print_files_in_directory(directory: &Path, max_depth: usize, include_errors: bool) -> Result<()> {
     for entry in WalkDir::new(directory).max_depth(max_depth) {
         match entry {
             Ok(entry) => {
                 if entry.file_type().is_file() {
-                    if let Err(e) = print_file(entry.path(), directory) {
-                        eprintln!("Warning: Failed to process file {}: {}", entry.path().display(), e);
+                    match print_file(entry.path(), directory) {
+                        Ok(_) => separator(),
+                        Err(e) => {
+                            if include_errors {
+                                println!("**{}:**", entry.path().display());
+                                println!("ERROR: Failed to process file: {}", e);
+                                separator();
+                            }
+                        }
                     }
-                    println!("{}", "-".repeat(80));
                 }
             }
             Err(e) => {
-                eprintln!("Warning: Failed to read entry in {}: {}", directory.display(), e);
+                if include_errors {
+                    println!("ERROR: Failed to read entry in {}: {}", directory.display(), e);
+                }
                 continue;
             }
         }
@@ -83,15 +87,24 @@ fn main() -> Result<()> {
 
     for path in &cli.paths {
         if path.is_dir() {
-            if let Err(e) = print_files_in_directory(path, cli.max_depth) {
-                eprintln!("Warning: Failed to process directory {}: {}", path.display(), e);
+            if let Err(e) = print_files_in_directory(path, cli.max_depth, cli.include_errors) {
+                if cli.include_errors {
+                    println!("ERROR: Failed to process directory {}: {}", path.display(), e);
+                }
             }
         } else if path.is_file() {
-            if let Err(e) = print_file(path, Path::new("")) {
-                eprintln!("Warning: Failed to process file {}: {}", path.display(), e);
+            match print_file(path, Path::new("")) {
+                Ok(_) => separator(),
+                Err(e) => {
+                    if cli.include_errors {
+                        println!("**{}:**", path.display());
+                        println!("ERROR: Failed to process file: {}", e);
+                        separator();
+                    }
+                }
             }
-        } else {
-            eprintln!("Warning: Path '{}' is neither a file nor a directory", path.display());
+        } else if cli.include_errors {
+            println!("ERROR: Path '{}' is neither a file nor a directory", path.display());
         }
     }
 
