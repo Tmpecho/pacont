@@ -14,8 +14,13 @@ struct Cli {
 /// Print the file path and the contents of a file
 fn print_file(file_path: &Path, base_path: &Path) -> io::Result<()> {
     let relative_path = file_path.strip_prefix(base_path).unwrap_or(file_path);
+    let display_path = if base_path == Path::new("") {
+        file_path
+    } else {
+        &base_path.join(relative_path)
+    };
 
-    println!("**{}**", relative_path.display());
+    println!("**{}:**", display_path.display());
 
     let mut file = fs::File::open(file_path)?;
     let mut contents = String::new();
@@ -57,7 +62,7 @@ fn main() -> Result<()> {
         if path.is_dir() {
             print_files_in_directory(path)?;
         } else if path.is_file() {
-            print_file(path, path)?;
+            print_file(path, Path::new(""))?;
         } else {
             anyhow::bail!("Error: Path is not a file or directory");
         }
