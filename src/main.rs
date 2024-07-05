@@ -78,6 +78,29 @@ fn print_files_in_directory(directory: &Path, max_depth: usize, include_errors: 
     Ok(())
 }
 
+fn process_path(cli: &Cli, path: &PathBuf) {
+    if path.is_dir() {
+        if let Err(e) = print_files_in_directory(path, cli.max_depth, cli.include_errors) {
+            if cli.include_errors {
+                println!("ERROR: Failed to process directory {}: {}", path.display(), e);
+            }
+        }
+    } else if path.is_file() {
+        match print_file(path, Path::new("")) {
+            Ok(_) => separator(),
+            Err(e) => {
+                if cli.include_errors {
+                    println!("**{}:**", path.display());
+                    println!("ERROR: Failed to process file: {}", e);
+                    separator();
+                }
+            }
+        }
+    } else if cli.include_errors {
+        println!("ERROR: Path '{}' is neither a file nor a directory", path.display());
+    }
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -86,26 +109,7 @@ fn main() -> Result<()> {
     }
 
     for path in &cli.paths {
-        if path.is_dir() {
-            if let Err(e) = print_files_in_directory(path, cli.max_depth, cli.include_errors) {
-                if cli.include_errors {
-                    println!("ERROR: Failed to process directory {}: {}", path.display(), e);
-                }
-            }
-        } else if path.is_file() {
-            match print_file(path, Path::new("")) {
-                Ok(_) => separator(),
-                Err(e) => {
-                    if cli.include_errors {
-                        println!("**{}:**", path.display());
-                        println!("ERROR: Failed to process file: {}", e);
-                        separator();
-                    }
-                }
-            }
-        } else if cli.include_errors {
-            println!("ERROR: Path '{}' is neither a file nor a directory", path.display());
-        }
+        process_path(&cli, path);
     }
 
     Ok(())
