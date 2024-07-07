@@ -19,6 +19,10 @@ struct Cli {
     /// Include error messages in the output
     #[clap(short, long)]
     include_errors: bool,
+
+    /// Get number of characters and words of output (useful if output could be too long)
+    #[clap(short, long)]
+    output_information: bool,
 }
 
 fn separator() {
@@ -26,7 +30,7 @@ fn separator() {
 }
 
 /// Print the file path and the contents of a file
-fn print_file(file_path: &Path, base_path: &Path) -> Result<()> {
+fn print_file(file_path: &Path, base_path: &Path, output_information: bool) -> Result<(usize, usize)> {
     let relative_path = file_path.strip_prefix(base_path)
         .with_context(|| format!("Failed to strip prefix from {}", file_path.display()))?;
     let display_path = if base_path == Path::new("") {
@@ -42,18 +46,28 @@ fn print_file(file_path: &Path, base_path: &Path) -> Result<()> {
     file.read_to_string(&mut contents)
         .with_context(|| format!("Failed to read file contents of {}", file_path.display()))?;
 
-    println!("**{}:**", display_path.display());
-    println!("{}", contents);
-    println!();
+    if !output_information {
+        println!("**{}:**", display_path.display());
+        println!("{}", contents);
+        println!();
+    }
 
-    Ok(())
+    let char_count = contents.chars().count();
+    let word_count = contents.split_whitespace().count();
+
+    Ok((char_count, word_count))
 }
 
 /// Process a directory entry if it is a file
-fn process_if_file(directory: &Path, include_errors: bool, entry: DirEntry) {
+fn process_if_file(directory: &Path, include_errors: bool, output_information: bool, entry: DirEntry) -> Result<(usize, usize)> {
     if entry.file_type().is_file() {
-        match print_file(entry.path(), directory) {
-            Ok(_) => separator(),
+        match print_file(entry.path(), directory, output_information) {
+            Ok((char_count, word_count)) => {
+                if !output_information {
+                    separator();
+                }
+                return Ok((char_count, word_count));
+            },
             Err(e) => {
                 if include_errors {
                     println!("**{}:**", entry.path().display());
@@ -63,14 +77,20 @@ fn process_if_file(directory: &Path, include_errors: bool, entry: DirEntry) {
             }
         }
     }
+    Ok((0, 0))
 }
 
 /// Print the files in a directory and its subdirectories
-fn print_files_in_directory(directory: &Path, max_depth: usize, include_errors: bool) -> Result<()> {
+fn print_files_in_directory(directory: &Path, max_depth: usize, include_errors: bool, output_information: bool) -> Result<(usize, usize)> {
+    let mut total_chars = 0;
+    let mut total_words = 0;
+
     for entry in WalkDir::new(directory).max_depth(max_depth) {
         match entry {
             Ok(entry) => {
-                process_if_file(directory, include_errors, entry);
+                let (char_count, word_count) = process_if_file(directory, include_errors, output_information, entry)?;
+                total_chars += char_count;
+                total_words += word_count;
             }
             Err(e) => {
                 if include_errors {
@@ -80,39 +100,51 @@ fn print_files_in_directory(directory: &Path, max_depth: usize, include_errors: 
             }
         }
     }
-    Ok(())
+
+    Ok((total_chars, total_words))
 }
 
-fn process_directory(cli: &Cli, path: &Path) {
-    if let Err(e) = print_files_in_directory(path, cli.max_depth, cli.include_errors) {
-        if cli.include_errors {
-            println!("ERROR: Failed to process directory {}: {}", path.display(), e);
-        }
-    }
+fn process_directory(cli: &Cli, path: &Path) -> Result<(usize, usize)> {
+    print_files_in_directory(path, cli.max_depth, cli.include_errors, cli.output_information)
 }
 
-fn process_file(cli: &Cli, path: &Path) {
-    match print_file(path, Path::new("")) {
-        Ok(_) => separator(),
-        Err(e) => {
-            if cli.include_errors {
-                println!("**{}:**", path.display());
-                println!("ERROR: Failed to process file: {}", e);
-                separator();
-            }
-        }
-    }
+fn process_file(cli: &Cli, path: &Path) -> Result<(usize, usize)> {
+    print_file(path, Path::new(""), cli.output_information)
 }
 
-/// Process a path, printing the contents of files and directories
-fn process_path(cli: &Cli, path: &Path) {
+fn process_path(cli: &Cli, path: &Path) -> Result<(usize, usize)> {
     if path.is_dir() {
-        process_directory(cli, path);
+        process_directory(cli, path)
     } else if path.is_file() {
-        process_file(cli, path);
-    } else if cli.include_errors {
-        println!("ERROR: Path '{}' is neither a file nor a directory", path.display());
+        process_file(cli, path)
+    } else {
+        if cli.include_errors {
+            println!("ERROR: Path '{}' is neither a file nor a directory", path.display());
+        }
+        Ok((0, 0))
     }
+}
+
+fn print_output_information(cli: &Cli) -> Result<()> {
+    let mut total_chars = 0;
+    let mut total_words = 0;
+    let mut paths = String::new();
+
+    for path in &cli.paths {
+        let (char_count, word_count) = process_path(cli, path)?;
+        total_chars += char_count;
+        total_words += word_count;
+        if !paths.is_empty() {
+            paths.push(' ');
+        }
+        paths.push_str(&path.display().to_string());
+    }
+
+    println!("Paths: {}", paths);
+    println!("Total Characters: {}", total_chars);
+    println!("Total Words: {}", total_words);
+
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -122,8 +154,12 @@ fn main() -> Result<()> {
         anyhow::bail!("No paths provided. Use --help for usage information.");
     }
 
-    for path in &cli.paths {
-        process_path(&cli, path);
+    if cli.output_information {
+        print_output_information(&cli)?;
+    } else {
+        for path in &cli.paths {
+            process_path(&cli, path)?;
+        }
     }
 
     Ok(())

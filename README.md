@@ -66,6 +66,7 @@ pacont [OPTIONS] <PATH>...
 
 - `-m, --max-depth <MAX_DEPTH>`: Maximum recursion depth for directories (0 means no recursion) [default: usize::MAX]
 - `-i, --include-errors`: Include error messages in the output
+- `-o, --output-information`: Display the number of characters and words of the output without printing the contents
 - `-h, --help`: Print help information 
 - `-V, --version`: Print version information
 
@@ -98,6 +99,12 @@ A very simple CLI tool to recursively print file paths and contents in a directo
 --------------------------------------------------------------------------------
 **notes.txt**
 Some notes here...
+```
+
+Running pacont `-o src README.md misc/` will output:
+```
+Total Characters: 1234
+Total Words: 234
 ```
 
 ## Contributing
