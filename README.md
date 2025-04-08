@@ -107,6 +107,12 @@ Total Characters: 1234
 Total Words: 234
 ```
 
+### Copying the output to the clipboard
+Move the complete output to your clipboard by piping the output to `pbcopy`:
+```bash
+pacont src/ | pbcopy
+```
+
 ## Contributing
 
 Contributions are welcome! Feel free to open an issue or submit a pull request if you have any improvements or new features to add.
