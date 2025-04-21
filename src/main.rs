@@ -37,8 +37,7 @@ fn main() -> Result<()> {
             .set_contents(buffer)
             .map_err(|e| anyhow::anyhow!("Failed to copy to clipboard: {}", e))?;
         eprintln!("Output copied to clipboard.");
-    } else if !cli.output_information {
-        eprintln!("Nothing to copy: No content generated or an error occurred.");
+    } else {
     }
 
     Ok(())
