@@ -1,6 +1,6 @@
 [package]
 name = "pacont"
-version = "0.5.3"
+version = "0.5.2"
 edition = "2025"
 
 [dependencies]
