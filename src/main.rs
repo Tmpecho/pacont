@@ -1,27 +1,14 @@
 mod cli;
-mod file_operations;
 mod directory_operations;
+mod file_operations;
 mod utils;
 
 use anyhow::Result;
-use cli::Cli;
 use clap::Parser;
-use file_operations::process_file;
-use directory_operations::process_directory;
-use utils::print_output_information;
+use cli::Cli;
+use utils::{output_information, process_path, separator};
 
-fn process_path(cli: &Cli, path: &std::path::Path) -> Result<(usize, usize)> {
-    if path.is_dir() {
-        process_directory(cli, path)
-    } else if path.is_file() {
-        process_file(cli, path)
-    } else {
-        if cli.include_errors {
-            println!("ERROR: Path '{}' is neither a file nor a directory", path.display());
-        }
-        Ok((0, 0))
-    }
-}
+use clipboard::{ClipboardContext, ClipboardProvider};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -29,14 +16,47 @@ fn main() -> Result<()> {
     if cli.paths.is_empty() {
         anyhow::bail!("No paths provided. Use --help for usage information.");
     }
+    
 
-    if cli.output_information {
-        print_output_information(&cli)?;
+    let buffer: String = if cli.output_information {
+        output_information(&cli)?
     } else {
-        for path in &cli.paths {
-            process_path(&cli, path)?;
-        }
+        output_content(&cli)?
+    };
+
+    if !cli.copy {
+        print!("{}", buffer);
+    } else if !buffer.is_empty() {
+        let mut ctx: ClipboardContext = ClipboardProvider::new()
+            .map_err(|e| anyhow::anyhow!("Failed to initialize clipboard: {}", e))?;
+        ctx.set_contents(buffer)
+            .map_err(|e| anyhow::anyhow!("Failed to copy to clipboard: {}", e))?;
+        eprintln!("Output copied to clipboard.");
+    } else if !cli.output_information {
+        eprintln!("Nothing to copy: No content generated or an error occurred.");
     }
 
     Ok(())
+}
+
+fn output_content(cli: &Cli) -> Result<String> {
+    let mut buf = String::new();
+
+    for (i, path) in cli.paths.iter().enumerate() {
+        match process_path(cli, path) {
+            Ok((content, _chars, _words, _lines)) => {
+                if i > 0 && !content.is_empty() && !buf.is_empty() {
+                    buf.push_str(&separator());
+                    buf.push('\n');
+                }
+                buf.push_str(&content);
+            }
+            Err(e) => {
+                if cli.include_errors {
+                    eprintln!("ERROR processing path {}: {}", path.display(), e);
+                }
+            }
+        }
+    }
+    Ok(buf)
 }
