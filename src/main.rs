@@ -16,7 +16,12 @@ fn main() -> Result<()> {
     if cli.paths.is_empty() {
         anyhow::bail!("No paths provided. Use --help for usage information.");
     }
-    
+
+    for path in &cli.paths {
+        if !path.exists() {
+            anyhow::bail!("Path or file does not exist: {}", path.display());
+        }
+    }
 
     let buffer: String = if cli.output_information {
         output_information(&cli)?
