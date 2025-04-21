@@ -7,4 +7,4 @@ edition = "2021"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 walkdir = "2"
-clipboard = "0.5"
+cli-clipboard = "0.4"
