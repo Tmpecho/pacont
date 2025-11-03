@@ -1,4 +1,5 @@
 mod cli;
+mod clipboard;
 mod directory_operations;
 mod file_operations;
 mod utils;
@@ -6,7 +7,8 @@ mod utils;
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
-use utils::{copy_to_clipboard, output_information, process_path, separator};
+use clipboard::copy_to_clipboard;
+use utils::{output_information, process_path, separator};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
