@@ -88,7 +88,7 @@ pacont [OPTIONS] <PATH>...
 - `-m, --max-depth <MAX_DEPTH>`: Maximum recursion depth for directories (0 means no recursion) [default: usize::MAX]
 - `-i, --include-errors`: Include error messages in the output
 - `-o, --output-information`:  Get number of characters, words and non-empty lines of output
-- `-c, --copy`: Automatically copy the output to clipboard
+- `-c, --copy`: Copy the output to clipboard
 - `-h, --help`: Print help information 
 - `-V, --version`: Print version information
 
