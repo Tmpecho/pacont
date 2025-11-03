@@ -6,8 +6,6 @@ mod utils;
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
-use std::io::Write;
-use std::process::{Command, Stdio};
 use utils::{output_information, process_path, separator};
 
 fn main() -> Result<()> {
