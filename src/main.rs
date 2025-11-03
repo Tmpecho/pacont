@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     } else if !buffer.is_empty() {
         copy_to_clipboard(buffer)?;
         eprintln!("Output copied to clipboard.");
-    }  else { 
+    } else {
         eprintln!("No output to copy to clipboard.");
     }
 
@@ -68,11 +68,12 @@ fn copy_to_clipboard(content: String) -> Result<()> {
             }
         }
         
-        // Try xsel as fallback  
-        // Use --keep flag to make xsel fork and keep serving the clipboard
+        // Try xsel as fallback
+        // xsel with --keep flag will persist the clipboard even after program exits
         if let Ok(mut child) = Command::new("xsel")
             .arg("--clipboard")
             .arg("--input")
+            .arg("--keep")
             .stdin(Stdio::piped())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
