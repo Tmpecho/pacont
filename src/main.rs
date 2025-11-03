@@ -7,8 +7,8 @@ use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
 use utils::{output_information, process_path, separator};
-
-use arboard::Clipboard;
+use std::process::{Command, Stdio};
+use std::io::Write;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -32,15 +32,91 @@ fn main() -> Result<()> {
     if !cli.copy {
         print!("{}", buffer);
     } else if !buffer.is_empty() {
-        let mut clipboard = Clipboard::new()
-            .map_err(|e| anyhow::anyhow!("Failed to initialize clipboard: {}", e))?;
-        clipboard.set_text(buffer)
-            .map_err(|e| anyhow::anyhow!("Failed to copy to clipboard: {}", e))?;
+        copy_to_clipboard(buffer)?;
         eprintln!("Output copied to clipboard.");
     }  else { 
         eprintln!("No output to copy to clipboard.");
     }
 
+    Ok(())
+}
+
+fn copy_to_clipboard(content: String) -> Result<()> {
+    // Try platform-specific clipboard commands first (they handle persistence better on Linux)
+    #[cfg(target_os = "linux")]
+    {
+        // Try xclip first (most common)
+        // xclip forks to background by default to keep clipboard content available
+        if let Ok(mut child) = Command::new("xclip")
+            .arg("-selection")
+            .arg("clipboard")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+        {
+            if let Some(mut stdin) = child.stdin.take() {
+                if stdin.write_all(content.as_bytes()).is_ok() {
+                    drop(stdin);
+                    // Wait for the parent xclip process (which forks and exits quickly)
+                    if let Ok(status) = child.wait() {
+                        if status.success() {
+                            return Ok(());
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Try xsel as fallback  
+        // Use --keep flag to make xsel fork and keep serving the clipboard
+        if let Ok(mut child) = Command::new("xsel")
+            .arg("--clipboard")
+            .arg("--input")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+        {
+            if let Some(mut stdin) = child.stdin.take() {
+                if stdin.write_all(content.as_bytes()).is_ok() {
+                    drop(stdin);
+                    if let Ok(status) = child.wait() {
+                        if status.success() {
+                            return Ok(());
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Try wl-copy for Wayland
+        if let Ok(mut child) = Command::new("wl-copy")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+        {
+            if let Some(mut stdin) = child.stdin.take() {
+                if stdin.write_all(content.as_bytes()).is_ok() {
+                    drop(stdin);
+                    if let Ok(status) = child.wait() {
+                        if status.success() {
+                            return Ok(());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Fallback to arboard for macOS, Windows, or if Linux commands aren't available
+    use arboard::Clipboard;
+    let mut clipboard = Clipboard::new()
+        .map_err(|e| anyhow::anyhow!("Failed to initialize clipboard: {}", e))?;
+    clipboard.set_text(content)
+        .map_err(|e| anyhow::anyhow!("Failed to copy to clipboard: {}", e))?;
+    
     Ok(())
 }
 

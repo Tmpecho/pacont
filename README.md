@@ -57,6 +57,27 @@ brew tap Tmpecho/pacont
 brew install pacont
 ```
 
+### Linux Clipboard Support
+
+For the `--copy` flag to work on Linux, you need one of the following clipboard utilities installed:
+- **xclip** (recommended for X11): `sudo apt-get install xclip`
+- **xsel** (alternative for X11): `sudo apt-get install xsel`
+- **wl-copy** (for Wayland): Usually included with `wl-clipboard` package
+
+On most Linux distributions, you can install xclip with:
+```bash
+# Debian/Ubuntu
+sudo apt-get install xclip
+
+# Fedora
+sudo dnf install xclip
+
+# Arch Linux
+sudo pacman -S xclip
+```
+
+Without these utilities, the clipboard functionality will fall back to a native implementation that may not persist after the program exits on some systems.
+
 ## Usage
 ```bash
 pacont [OPTIONS] <PATH>...
