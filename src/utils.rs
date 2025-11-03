@@ -53,7 +53,10 @@ pub fn output_information(cli: &Cli) -> Result<String> {
     buf.push_str(&format!("Paths: {}\n", paths_str));
     buf.push_str(&format!("Total Characters: {}\n", total_chars));
     buf.push_str(&format!("Total Words: {}\n", total_words));
-    buf.push_str(&format!("Total Non-Empty Lines: {}\n", total_non_empty_lines));
+    buf.push_str(&format!(
+        "Total Non-Empty Lines: {}\n",
+        total_non_empty_lines
+    ));
 
     Ok(buf)
 }

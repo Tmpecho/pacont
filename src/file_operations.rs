@@ -31,7 +31,10 @@ pub fn process_file_content(
 
     let char_count = contents.chars().count();
     let word_count = contents.split_whitespace().count();
-    let non_empty_line_count = contents.lines().filter(|line| !line.trim().is_empty()).count();
+    let non_empty_line_count = contents
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .count();
 
     let mut output_buffer = String::new();
     if !output_information {
@@ -153,7 +156,12 @@ mod tests {
         let result = process_file_content(&file_path, temp_dir.path(), false);
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Failed to open file"));
+        assert!(
+            result
+                .unwrap_err()
+                .to_string()
+                .contains("Failed to open file")
+        );
     }
 
     #[test]

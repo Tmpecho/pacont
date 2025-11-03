@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use clap::Parser;
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[clap(version, about, long_about = None)]
@@ -18,7 +18,7 @@ pub struct Cli {
     /// Get number of characters and words of output (useful if output could be too long)
     #[clap(short, long)]
     pub output_information: bool,
-    
+
     /// Copy the output to the system clipboard instead of printing it
     #[clap(short, long)]
     pub copy: bool,

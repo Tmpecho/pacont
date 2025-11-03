@@ -215,7 +215,7 @@ fn test_separator_between_files() {
 
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
-    
+
     // Check that there's exactly one separator (80 dashes)
     let separator_count = stdout.matches(&"-".repeat(80)).count();
     assert_eq!(separator_count, 1);
@@ -268,7 +268,7 @@ fn test_copy_flag_no_clipboard_interaction() {
     // Stdout should be empty when using -c flag (content goes to clipboard)
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout, "");
-    
+
     // Stderr should contain clipboard message (success or failure depending on environment)
     let stderr = String::from_utf8(output.stderr).unwrap();
     assert!(!stderr.is_empty());
@@ -278,7 +278,7 @@ fn test_copy_flag_no_clipboard_interaction() {
 fn test_long_max_depth() {
     let temp_dir = TempDir::new().unwrap();
     let mut current_dir = temp_dir.path().to_path_buf();
-    
+
     // Create a deep nested structure
     for i in 1..=5 {
         current_dir = current_dir.join(format!("level{}", i));

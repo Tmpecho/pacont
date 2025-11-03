@@ -6,9 +6,9 @@ mod utils;
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
-use utils::{output_information, process_path, separator};
-use std::process::{Command, Stdio};
 use std::io::Write;
+use std::process::{Command, Stdio};
+use utils::{output_information, process_path, separator};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -67,7 +67,7 @@ fn copy_to_clipboard(content: String) -> Result<()> {
                 }
             }
         }
-        
+
         // Try xsel as fallback
         // xsel with --keep flag will persist the clipboard even after program exits
         if let Ok(mut child) = Command::new("xsel")
@@ -90,7 +90,7 @@ fn copy_to_clipboard(content: String) -> Result<()> {
                 }
             }
         }
-        
+
         // Try wl-copy for Wayland
         if let Ok(mut child) = Command::new("wl-copy")
             .stdin(Stdio::piped())
@@ -110,14 +110,15 @@ fn copy_to_clipboard(content: String) -> Result<()> {
             }
         }
     }
-    
+
     // Fallback to arboard for macOS, Windows, or if Linux commands aren't available
     use arboard::Clipboard;
-    let mut clipboard = Clipboard::new()
-        .map_err(|e| anyhow::anyhow!("Failed to initialize clipboard: {}", e))?;
-    clipboard.set_text(content)
+    let mut clipboard =
+        Clipboard::new().map_err(|e| anyhow::anyhow!("Failed to initialize clipboard: {}", e))?;
+    clipboard
+        .set_text(content)
         .map_err(|e| anyhow::anyhow!("Failed to copy to clipboard: {}", e))?;
-    
+
     Ok(())
 }
 
