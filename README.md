@@ -1,5 +1,6 @@
 # Pacont
->  A tool to easily gather code context to give to an AI like ChatGPT or Claude.
+>
+> A tool to easily gather code context to give to an AI like ChatGPT or Claude.
 
 ____
 
@@ -33,25 +34,29 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 ### Build from Source
 
-1.	Clone the repository:
+1. Clone the repository:
+
 ```bash
 git clone https://github.com/Tmpecho/pacont.git
 cd pacont
 ```
 
 2. Build the project:
+
 ```bash
 cargo build --release
 ```
 
-3.	Move the executable to a directory in your PATH:
+3. Move the executable to a directory in your PATH:
 
-#### MacOS/Linux:
+#### MacOS/Linux
+
 ```bash
 sudo cp target/release/pacont /usr/local/bin/pacont
 ```
 
 ### Homebrew Installation
+
 ```bash
 brew tap Tmpecho/pacont
 brew install pacont
@@ -60,11 +65,13 @@ brew install pacont
 ### Linux Clipboard Support
 
 For the `--copy` flag to work on Linux, you need one of the following clipboard utilities installed:
+
 - **xclip** (recommended for X11): `sudo apt-get install xclip`
 - **xsel** (alternative for X11): `sudo apt-get install xsel`
 - **wl-copy** (for Wayland): Usually included with `wl-clipboard` package
 
 On most Linux distributions, you can install xclip with:
+
 ```bash
 # Debian/Ubuntu
 sudo apt-get install xclip
@@ -79,6 +86,7 @@ sudo pacman -S xclip
 Without these utilities, the clipboard functionality will fall back to a native implementation that may not persist after the program exits on some systems.
 
 ## Usage
+
 ```bash
 pacont [OPTIONS] <PATH>...
 ```
@@ -89,13 +97,14 @@ pacont [OPTIONS] <PATH>...
 - `-i, --include-errors`: Include error messages in the output
 - `-o, --output-information`:  Get number of characters, words and non-empty lines of output
 - `-c, --copy`: Copy the output to clipboard
-- `-h, --help`: Print help information 
+- `-h, --help`: Print help information
 - `-V, --version`: Print version information
 
 ### Example
 
 Given a directory structure:
-```
+
+```txt
 src/
 ├── div
 │   └── test.kt
@@ -106,7 +115,8 @@ misc/
 ```
 
 Running `pacont src README.md misc/` will output:
-```
+
+```txt
 **div/test.kt**
 //comment
 
@@ -124,7 +134,8 @@ Some notes here...
 ```
 
 Running `pacont -o src README.md misc/` will output:
-```
+
+```txt
 Total Characters: 1234
 Total Words: 234
 Total Non-Empty Lines: 56 
