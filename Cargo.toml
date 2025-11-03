@@ -7,4 +7,4 @@ edition = "2024"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 walkdir = "2"
-cli-clipboard = "0.4"
+arboard = { version = "3.4", default-features = false }

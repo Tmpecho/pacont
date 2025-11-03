@@ -8,7 +8,7 @@ use clap::Parser;
 use cli::Cli;
 use utils::{output_information, process_path, separator};
 
-use cli_clipboard::{ClipboardContext, ClipboardProvider};
+use arboard::Clipboard;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -32,9 +32,9 @@ fn main() -> Result<()> {
     if !cli.copy {
         print!("{}", buffer);
     } else if !buffer.is_empty() {
-        ClipboardContext::new()
-            .map_err(|e| anyhow::anyhow!("Failed to initialize clipboard: {}", e))?
-            .set_contents(buffer)
+        let mut clipboard = Clipboard::new()
+            .map_err(|e| anyhow::anyhow!("Failed to initialize clipboard: {}", e))?;
+        clipboard.set_text(buffer)
             .map_err(|e| anyhow::anyhow!("Failed to copy to clipboard: {}", e))?;
         eprintln!("Output copied to clipboard.");
     }  else { 
