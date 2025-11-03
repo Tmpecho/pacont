@@ -2,7 +2,9 @@ use crate::cli::Cli;
 use crate::directory_operations::process_directory;
 use crate::file_operations::process_file;
 use anyhow::Result;
+use std::io::Write;
 use std::path::Path;
+use std::process::{Command, Stdio};
 
 pub fn separator() -> String {
     "-".repeat(80)
