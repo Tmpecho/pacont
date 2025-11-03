@@ -139,8 +139,8 @@ mod tests {
         let (_content, chars, words, _lines) =
             process_file_content(&file_path, temp_dir.path(), false).unwrap();
 
-        // Unicode characters should be counted correctly
-        // "Hello 世界 🌍\n" = 11 chars (H,e,l,l,o,space,世,界,space,🌍,newline)
+        // Rust's chars().count() counts Unicode scalar values
+        // "Hello 世界 🌍\n" = 11 scalar values
         assert_eq!(chars, 11);
         assert_eq!(words, 3);
     }
