@@ -6,7 +6,7 @@ mod utils;
 use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
-use utils::{output_information, process_path, separator};
+use utils::{copy_to_clipboard, output_information, process_path, separator};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -30,7 +30,7 @@ fn main() -> Result<()> {
     if !cli.copy {
         print!("{}", buffer);
     } else if !buffer.is_empty() {
-        utils::copy_to_clipboard(buffer)?;
+        copy_to_clipboard(buffer)?;
         eprintln!("Output copied to clipboard.");
     } else {
         eprintln!("No output to copy to clipboard.");
