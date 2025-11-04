@@ -1,5 +1,7 @@
 use anyhow::Result;
+#[cfg(target_os = "linux")]
 use std::io::Write;
+#[cfg(target_os = "linux")]
 use std::process::{Command, Stdio};
 
 #[cfg(target_os = "linux")]
