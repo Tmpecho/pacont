@@ -6,7 +6,7 @@
 
 ![Release](https://img.shields.io/github/v/release/Tmpecho/pacont)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Rust](https://img.shields.io/badge/Rust-1.60+-blue.svg)
+![Rust](https://img.shields.io/badge/Rust-1.82+-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-macOS%20|%20Linux-lightgrey)
 
 ## Overview
@@ -99,7 +99,7 @@ pacont [OPTIONS] <PATH>...
 
 ### Options
 
-- `-m, --max-depth <MAX_DEPTH>`: Maximum recursion depth for directories (0 means no recursion) [default: usize::MAX]
+- `-m, --max-depth <MAX_DEPTH>`: Maximum recursion depth for directories (0 means no recursion) [default: 10]
 - `-i, --include-errors`: Include error messages in the output
 - `-o, --output-information`: Get number of characters, words and non-empty lines of output
 - `-c, --copy`: Copy the output to clipboard
@@ -129,12 +129,12 @@ Running `pacont src README.md misc/` will output:
 **main.kt**
 println("hello")
 
---------------------------------------------------------------------------------
+----------
 **README.md**
 # Pacont
 A very simple CLI tool to recursively print file paths and contents in a directory.
 
---------------------------------------------------------------------------------
+----------
 **notes.txt**
 Some notes here...
 ```
