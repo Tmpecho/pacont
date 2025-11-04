@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::io::Write;
 use std::process::{Command, Stdio};
 
+#[cfg(target_os = "linux")]
 fn execute_clipboard_command(command_name: &str, args: &[&str], content: &str) -> Result<()> {
     let mut child = Command::new(command_name)
         .args(args)
