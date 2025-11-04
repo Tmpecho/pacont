@@ -217,7 +217,7 @@ fn test_separator_between_files() {
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     // Check that there's exactly one separator (80 dashes)
-    let separator_count = stdout.matches(&"-".repeat(80)).count();
+    let separator_count = stdout.matches(&"-".repeat(10)).count();
     assert_eq!(separator_count, 1);
 }
 

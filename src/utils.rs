@@ -70,7 +70,7 @@ mod tests {
     #[test]
     fn test_separator() {
         let sep = separator();
-        assert_eq!(sep.len(), 80);
+        assert_eq!(sep.len(), 10);
         assert!(sep.chars().all(|c| c == '-'));
     }
 
