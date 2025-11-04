@@ -2,6 +2,12 @@
 name = "pacont"
 version = "0.5.3"
 edition = "2024"
+license = "MIT"
+description = "CLI tool to gather code context for LLMs"
+repository = "https://github.com/Tmpecho/pacont"
+readme = "README.md"
+categories = ["command-line-utilities"]
+keywords = ["cli", "context", "ai"]
 
 [dependencies]
 anyhow = "1"
