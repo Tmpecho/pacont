@@ -1,8 +1,8 @@
 # Pacont
->
+
 > A tool to easily gather code context to give to an AI like ChatGPT or Claude.
 
-____
+---
 
 ![Release](https://img.shields.io/github/v/release/Tmpecho/pacont)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -55,6 +55,12 @@ cargo build --release
 sudo cp target/release/pacont /usr/local/bin/pacont
 ```
 
+### Cargo Installation
+
+```bash
+cargo install pacont
+```
+
 ### Homebrew Installation
 
 ```bash
@@ -95,7 +101,7 @@ pacont [OPTIONS] <PATH>...
 
 - `-m, --max-depth <MAX_DEPTH>`: Maximum recursion depth for directories (0 means no recursion) [default: usize::MAX]
 - `-i, --include-errors`: Include error messages in the output
-- `-o, --output-information`:  Get number of characters, words and non-empty lines of output
+- `-o, --output-information`: Get number of characters, words and non-empty lines of output
 - `-c, --copy`: Copy the output to clipboard
 - `-h, --help`: Print help information
 - `-V, --version`: Print version information
@@ -138,7 +144,7 @@ Running `pacont -o src README.md misc/` will output:
 ```txt
 Total Characters: 1234
 Total Words: 234
-Total Non-Empty Lines: 56 
+Total Non-Empty Lines: 56
 ```
 
 ## Contributing
