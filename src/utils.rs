@@ -5,7 +5,7 @@ use anyhow::Result;
 use std::path::Path;
 
 pub fn separator() -> String {
-    "-".repeat(80)
+    "-".repeat(10)
 }
 
 pub fn process_path(cli: &Cli, path: &Path) -> Result<(String, usize, usize, usize)> {

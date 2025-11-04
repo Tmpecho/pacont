@@ -2,95 +2,71 @@ use crate::cli::Cli;
 use crate::file_operations::process_file_content;
 use crate::utils::separator;
 use anyhow::Result;
-use std::path::{Path, PathBuf};
-use walkdir::{DirEntry, WalkDir};
+use std::path::Path;
+use walkdir::WalkDir;
 
-fn process_entry_if_file(
-    directory: &Path,
-    include_errors: bool,
-    output_information: bool,
-    entry: DirEntry,
-) -> Result<(String, usize, usize, usize)> {
-    if entry.file_type().is_file() {
-        match process_file_content(entry.path(), directory, output_information) {
-            Ok((content, char_count, word_count, non_empty_line_count)) => {
-                Ok((content, char_count, word_count, non_empty_line_count))
-            }
-            Err(e) => {
-                if include_errors {
-                    eprintln!("**{}:**", entry.path().display());
-                    eprintln!("ERROR: Failed to process file: {}", e);
-                    Ok((String::new(), 0, 0, 0))
-                } else {
-                    Ok((String::new(), 0, 0, 0))
-                }
-            }
-        }
-    } else {
-        Ok((String::new(), 0, 0, 0))
+fn handle_file_error(path: &Path, error: &anyhow::Error, include_errors: bool) {
+    if include_errors {
+        eprintln!("**{}:**", path.display());
+        eprintln!("ERROR: Failed to process file: {}", error);
     }
 }
 
-fn process_directory_contents(
-    directory: &Path,
-    max_depth: usize,
-    include_errors: bool,
-    output_information: bool,
-) -> Result<(String, usize, usize, usize)> {
+fn handle_walk_error(directory: &Path, error: &walkdir::Error, include_errors: bool) {
+    if include_errors {
+        eprintln!(
+            "ERROR: Failed to read entry in {}: {}",
+            directory.display(),
+            error
+        );
+    }
+}
+
+fn should_add_separator(buffer: &str, content: &str, output_information: bool) -> bool {
+    !buffer.is_empty() && !content.is_empty() && !output_information
+}
+
+pub fn process_directory(cli: &Cli, directory: &Path) -> Result<(String, usize, usize, usize)> {
+    let mut buffer = String::new();
     let mut total_chars = 0;
     let mut total_words = 0;
-    let mut total_non_empty_lines = 0;
-    let mut buffer = String::new();
-    let mut first_file_processed = true;
+    let mut total_lines = 0;
 
-    for walk_entry_result in WalkDir::new(directory).max_depth(max_depth) {
-        match walk_entry_result {
-            Ok(entry) => {
-                let entry_path: PathBuf = entry.path().to_path_buf();
-                match process_entry_if_file(directory, include_errors, output_information, entry) {
-                    Ok((content, char_count, word_count, non_empty_line_count)) => {
-                        total_chars += char_count;
-                        total_words += word_count;
-                        total_non_empty_lines += non_empty_line_count;
-
-                        if !content.is_empty() && !output_information {
-                            if !first_file_processed {
-                                buffer.push_str(&separator());
-                                buffer.push('\n');
-                            }
-                            buffer.push_str(&content);
-                            first_file_processed = false;
-                        }
-                    }
-                    Err(e) => {
-                        if include_errors {
-                            eprintln!("ERROR processing entry {:?}: {}", entry_path, e);
-                        }
-                    }
-                }
-            }
+    for entry_result in WalkDir::new(directory).max_depth(cli.max_depth) {
+        let entry = match entry_result {
+            Ok(entry) => entry,
             Err(e) => {
-                if include_errors {
-                    eprintln!(
-                        "ERROR: Failed to read entry in {}: {}",
-                        directory.display(),
-                        e
-                    );
-                }
+                handle_walk_error(directory, &e, cli.include_errors);
+                continue;
             }
+        };
+
+        if !entry.file_type().is_file() {
+            continue;
         }
+
+        let (content, chars, words, lines) =
+            match process_file_content(entry.path(), directory, cli.output_information) {
+                Ok(result) => result,
+                Err(e) => {
+                    handle_file_error(entry.path(), &e, cli.include_errors);
+                    continue;
+                }
+            };
+
+        total_chars += chars;
+        total_words += words;
+        total_lines += lines;
+
+        if should_add_separator(&buffer, &content, cli.output_information) {
+            buffer.push_str(&separator());
+            buffer.push('\n');
+        }
+
+        buffer.push_str(&content);
     }
 
-    Ok((buffer, total_chars, total_words, total_non_empty_lines))
-}
-
-pub fn process_directory(cli: &Cli, path: &Path) -> Result<(String, usize, usize, usize)> {
-    process_directory_contents(
-        path,
-        cli.max_depth,
-        cli.include_errors,
-        cli.output_information,
-    )
+    Ok((buffer, total_chars, total_words, total_lines))
 }
 
 #[cfg(test)]
